@@ -111,17 +111,20 @@ version() {
 #
 
 ssh_command() {
-  local url="`config_get user`@`config_get host`"
+  local user="`config_get user`"
+  local host="`config_get host`"
   local key="`config_get key`"
   local forward_agent="`config_get forward-agent`"
   local port="`config_get port`"
   local needs_tty="`config_get needs_tty`"
 
+  test -n "$user" && user="$user@"
+  test -z "$host" && host="localhost"
   test -n "$forward_agent" && local agent="-A"
   test -n "$key" && local identity="-i $key"
   test -n "$port" && local port="-p $port"
   test -n "$needs_tty" && local tty="-t"
-  echo "ssh $tty $agent $port $identity $url"
+  echo "ssh $tty $agent $port $identity $user$host"
 }
 
 #
@@ -224,7 +227,7 @@ setup() {
     run "git clone --depth=5 --branch $branch $repo $path/source"
   fi
   test $? -eq 0 || abort failed to clone
-  run "cd $path && ln -sfn ./source ./current"
+  run "cd $path && ln -sfn source current"
   test $? -eq 0 || abort symlink failed
   log setup complete
 }
@@ -269,7 +272,7 @@ deploy() {
   test $? -eq 0 || abort git reset failed
 
   # link current
-  run "cd $path && ln -sfn ./source ./current"
+  run "cd $path && ln -sfn source current"
   test $? -eq 0 || abort symlink failed
 
   # deploy log
