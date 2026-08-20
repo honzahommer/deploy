@@ -20,7 +20,7 @@ ENV=
 #
 
 usage() {
-  cat <<-EOF
+    cat <<- EOF
 
   Usage: deploy [options] <env> [command]
 
@@ -54,10 +54,10 @@ EOF
 #
 
 abort() {
-  echo
-  echo "  $@" 1>&2
-  echo
-  exit 1
+    echo
+    echo "  $@" 1>&2
+    echo
+    exit 1
 }
 
 #
@@ -65,7 +65,7 @@ abort() {
 #
 
 log() {
-  echo "  ○ $@"
+    echo "  ○ $@"
 }
 
 #
@@ -73,8 +73,8 @@ log() {
 #
 
 set_config_path() {
-  test -f $1 || abort invalid --config path
-  CONFIG=$1
+    test -f $1 || abort invalid --config path
+    CONFIG=$1
 }
 
 #
@@ -82,7 +82,7 @@ set_config_path() {
 #
 
 config_section() {
-  grep "^\[$1" $CONFIG &> /dev/null
+    grep "^\[$1" $CONFIG &> /dev/null
 }
 
 #
@@ -90,12 +90,12 @@ config_section() {
 #
 
 config_get() {
-  local key=$1
-  test -n "$key" \
-    && grep "^\[$ENV" -A 20 $CONFIG \
-    | grep "^$key" \
-    | head -n 1 \
-    | cut -d ' ' -f 2-999
+    local key=$1
+    test -n "$key" \
+        && grep "^\[$ENV" -A 20 $CONFIG \
+        | grep "^$key" \
+            | head -n 1 \
+            | cut -d ' ' -f 2-999
 }
 
 #
@@ -103,7 +103,7 @@ config_get() {
 #
 
 version() {
-  echo $VERSION
+    echo $VERSION
 }
 
 #
@@ -111,20 +111,20 @@ version() {
 #
 
 ssh_command() {
-  local user="`config_get user`"
-  local host="`config_get host`"
-  local key="`config_get key`"
-  local forward_agent="`config_get forward-agent`"
-  local port="`config_get port`"
-  local needs_tty="`config_get needs_tty`"
+    local user="$(config_get user)"
+    local host="$(config_get host)"
+    local key="$(config_get key)"
+    local forward_agent="$(config_get forward-agent)"
+    local port="$(config_get port)"
+    local needs_tty="$(config_get needs_tty)"
 
-  test -n "$user" && user="$user@"
-  test -z "$host" && host="localhost"
-  test -n "$forward_agent" && local agent="-A"
-  test -n "$key" && local identity="-i $key"
-  test -n "$port" && local port="-p $port"
-  test -n "$needs_tty" && local tty="-t"
-  echo "ssh $tty $agent $port $identity $user$host"
+    test -n "$user" && user="$user@"
+    test -z "$host" && host="localhost"
+    test -n "$forward_agent" && local agent="-A"
+    test -n "$key" && local identity="-i $key"
+    test -n "$port" && local port="-p $port"
+    test -n "$needs_tty" && local tty="-t"
+    echo "ssh $tty $agent $port $identity $user$host"
 }
 
 #
@@ -132,9 +132,9 @@ ssh_command() {
 #
 
 runRemote() {
-  local shell="`ssh_command`"
-  echo $shell "\"$@\"" >> $LOG
-  $shell $@
+    local shell="$(ssh_command)"
+    echo $shell "\"$@\"" >> $LOG
+    $shell $@
 }
 
 #
@@ -142,8 +142,8 @@ runRemote() {
 #
 
 runLocal() {
-  echo "\"$@\"" >> $LOG
-  /usr/bin/env bash -c "$*"
+    echo "\"$@\"" >> $LOG
+    /usr/bin/env bash -c "$*"
 }
 
 #
@@ -151,13 +151,12 @@ runLocal() {
 #
 
 run() {
-  local host="`config_get host`"
-  if [[ $host == localhost ]]
-  then
-    runLocal $@
-  else
-    runRemote $@
-  fi
+    local host="$(config_get host)"
+    if [[ $host == localhost ]]; then
+        runLocal $@
+    else
+        runRemote $@
+    fi
 }
 
 #
@@ -165,10 +164,10 @@ run() {
 #
 
 console() {
-  local path="`config_get path`/current"
-  local shell="`ssh_command`"
-  echo $shell
-  exec $shell -t "cd $path; \$SHELL --login"
+    local path="$(config_get path)/current"
+    local shell="$(ssh_command)"
+    echo $shell
+    exec $shell -t "cd $path; \$SHELL --login"
 }
 
 #
@@ -176,11 +175,11 @@ console() {
 #
 
 config() {
-  if test $# -eq 0; then
-    cat $CONFIG
-  else
-    config_get $1
-  fi
+    if test $# -eq 0; then
+        cat $CONFIG
+    else
+        config_get $1
+    fi
 }
 
 #
@@ -188,20 +187,20 @@ config() {
 #
 
 hook() {
-  test -n "$1" || abort hook name required
-  local hook=$1
-  local path=`config_get path`
-  local cmd=`config_get $hook`
-  if test -n "$cmd"; then
-    log "executing $hook \`$cmd\`"
-    run "cd $path/current; \
+    test -n "$1" || abort hook name required
+    local hook=$1
+    local path=$(config_get path)
+    local cmd=$(config_get $hook)
+    if test -n "$cmd"; then
+        log "executing $hook \`$cmd\`"
+        run "cd $path/current; \
       SHARED=\"$path/shared\" \
       $cmd 2>&1 | tee -a $LOG; \
       exit \${PIPESTATUS[0]}"
-    test $? -eq 0
-  else
-    log hook $hook
-  fi
+        test $? -eq 0
+    else
+        log hook $hook
+    fi
 }
 
 #
@@ -209,27 +208,27 @@ hook() {
 #
 
 setup() {
-  local path=`config_get path`
-  local repo=`config_get repo`
-  local ref=`config_get ref`
-  local fetch=`config_get fetch`
-  local branch=${ref#*/}
+    local path=$(config_get path)
+    local repo=$(config_get repo)
+    local ref=$(config_get ref)
+    local fetch=$(config_get fetch)
+    local branch=${ref#*/}
 
-  run "mkdir -p $path/{shared/{logs,pids},source}"
-  test $? -eq 0 || abort setup paths failed
-  log running setup
-  log cloning $repo
-  if test "$fetch" != "fast"; then
-    log "full fetch"
-    run "git clone --branch $branch $repo $path/source"
-  else
-    log "fast fetch"
-    run "git clone --depth=5 --branch $branch $repo $path/source"
-  fi
-  test $? -eq 0 || abort failed to clone
-  run "cd $path && ln -sfn source current"
-  test $? -eq 0 || abort symlink failed
-  log setup complete
+    run "mkdir -p $path/{shared/{logs,pids},source}"
+    test $? -eq 0 || abort setup paths failed
+    log running setup
+    log cloning $repo
+    if test "$fetch" != "fast"; then
+        log "full fetch"
+        run "git clone --branch $branch $repo $path/source"
+    else
+        log "fast fetch"
+        run "git clone --depth=5 --branch $branch $repo $path/source"
+    fi
+    test $? -eq 0 || abort failed to clone
+    run "cd $path && ln -sfn source current"
+    test $? -eq 0 || abort symlink failed
+    log setup complete
 }
 
 #
@@ -237,64 +236,64 @@ setup() {
 #
 
 deploy() {
-  local ref=$1
-  local path=`config_get path`
-  local fetch=`config_get fetch`
+    local ref=$1
+    local path=$(config_get path)
+    local fetch=$(config_get fetch)
 
-  log "deploying ${ref}"
+    log "deploying ${ref}"
 
-  hook pre-deploy || abort pre-deploy hook failed
+    hook pre-deploy || abort pre-deploy hook failed
 
-  # fetch source
-  log fetching updates
-  if test "$fetch" != "fast"; then
-      log "full fetch"
-      run "cd $path/source && git fetch --all --tags"
-  else
-      log "fast fetch"
-      run "cd $path/source && git fetch --depth=5 --all --tags"
-  fi
-  test $? -eq 0 || abort fetch failed
+    # fetch source
+    log fetching updates
+    if test "$fetch" != "fast"; then
+        log "full fetch"
+        run "cd $path/source && git fetch --all --tags"
+    else
+        log "fast fetch"
+        run "cd $path/source && git fetch --depth=5 --all --tags"
+    fi
+    test $? -eq 0 || abort fetch failed
 
-  # latest tag
-  if test -z "$ref"; then
-    log fetching latest tag
-    ref=`run "cd $path/source && git for-each-ref refs/tags \
+    # latest tag
+    if test -z "$ref"; then
+        log fetching latest tag
+        ref=$(run "cd $path/source && git for-each-ref refs/tags \
       --sort=-*authordate \
       --format='%(refname)' \
-      --count=1 | cut -d '/' -f 3"`
-    test $? -eq 0 || abort failed to determine latest tag
-  fi
+      --count=1 | cut -d '/' -f 3")
+        test $? -eq 0 || abort failed to determine latest tag
+    fi
 
-  # reset HEAD
-  log resetting HEAD to $ref
-  run "cd $path/source && git reset --hard $ref"
-  test $? -eq 0 || abort git reset failed
+    # reset HEAD
+    log resetting HEAD to $ref
+    run "cd $path/source && git reset --hard $ref"
+    test $? -eq 0 || abort git reset failed
 
-  # link current
-  run "cd $path && ln -sfn source current"
-  test $? -eq 0 || abort symlink failed
+    # link current
+    run "cd $path && ln -sfn source current"
+    test $? -eq 0 || abort symlink failed
 
-  # deploy log
-  run "cd $path/source && \
+    # deploy log
+    run "cd $path/source && \
       echo \`git rev-parse --short HEAD\` \
       >> $path/.deploys"
-  test $? -eq 0 || abort deploy log append failed
+    test $? -eq 0 || abort deploy log append failed
 
-  hook post-deploy || abort post-deploy hook failed
+    hook post-deploy || abort post-deploy hook failed
 
-  if test $TEST -eq 1; then
-    hook test
-    if test $? -ne 0; then
-      log tests failed, reverting deploy
-      quickly_revert_to 1 && log "revert complete" && exit
+    if test $TEST -eq 1; then
+        hook test
+        if test $? -ne 0; then
+            log tests failed, reverting deploy
+            quickly_revert_to 1 && log "revert complete" && exit
+        fi
+    else
+        log ignoring tests
     fi
-  else
-    log ignoring tests
-  fi
 
-  # done
-  log successfully deployed $ref
+    # done
+    log successfully deployed $ref
 }
 
 #
@@ -302,8 +301,8 @@ deploy() {
 #
 
 current_commit() {
-  local path=`config_get path`
-  run "cd $path/source && \
+    local path=$(config_get path)
+    run "cd $path/source && \
       git rev-parse --short HEAD"
 }
 
@@ -312,9 +311,9 @@ current_commit() {
 #
 
 nth_deploy_commit() {
-  local n=$1
-  local path=`config_get path`
-  run "cat $path/.deploys | tail -n $n | head -n 1 | cut -d ' ' -f 1"
+    local n=$1
+    local path=$(config_get path)
+    run "cat $path/.deploys | tail -n $n | head -n 1 | cut -d ' ' -f 1"
 }
 
 #
@@ -322,8 +321,8 @@ nth_deploy_commit() {
 #
 
 list_deploys() {
-  local path=`config_get path`
-  run "tac $path/.deploys | awk '{printf \"%d\t%s\n\", NR-1, \$0}'"
+    local path=$(config_get path)
+    run "tac $path/.deploys | awk '{printf \"%d\t%s\n\", NR-1, \$0}'"
 }
 
 #
@@ -331,10 +330,10 @@ list_deploys() {
 #
 
 quickly_revert_to() {
-  local n=$1
-  log "quickly reverting $n deploy(s)"
-  local commit=`nth_deploy_commit $((n + 1))`
-  TEST=0 deploy "$commit"
+    local n=$1
+    log "quickly reverting $n deploy(s)"
+    local commit=$(nth_deploy_commit $((n + 1)))
+    TEST=0 deploy "$commit"
 }
 
 #
@@ -342,10 +341,10 @@ quickly_revert_to() {
 #
 
 revert_to() {
-  local n=$1
-  log "reverting $n deploy(s)"
-  local commit=`nth_deploy_commit $((n + 1))`
-  deploy "$commit"
+    local n=$1
+    log "reverting $n deploy(s)"
+    local commit=$(nth_deploy_commit $((n + 1)))
+    deploy "$commit"
 }
 
 #
@@ -353,8 +352,8 @@ revert_to() {
 #
 
 require_env() {
-  config_section $ENV || abort "[$ENV] config section not defined"
-  test -z "$ENV" && abort "<env> required"
+    config_section $ENV || abort "[$ENV] config section not defined"
+    test -z "$ENV" && abort "<env> required"
 }
 
 #
@@ -362,13 +361,13 @@ require_env() {
 #
 
 check_for_local_changes() {
-  if [ $FORCE -eq 1 ]; then
-      return
-  fi
+    if [ $FORCE -eq 1 ]; then
+        return
+    fi
 
-  git --no-pager diff --exit-code --quiet          || abort "commit or stash your changes before deploying"
-  git --no-pager diff --exit-code --quiet --cached || abort "commit your staged changes before deploying"
-  [ -z "`git rev-list @{upstream}.. -n 1`" ]       || abort "push your changes before deploying"
+    git --no-pager diff --exit-code --quiet || abort "commit or stash your changes before deploying"
+    git --no-pager diff --exit-code --quiet --cached || abort "commit your staged changes before deploying"
+    [ -z "$(git rev-list @{upstream}.. -n 1)" ] || abort "push your changes before deploying"
 }
 
 #
@@ -376,50 +375,98 @@ check_for_local_changes() {
 #
 
 update() {
-  log "updating deploy(1)"
-  rm -fr /tmp/deploy
-  git clone git://github.com/honzahommer/deploy.git \
-    --depth 0 \
-    /tmp/deploy \
-    &> /tmp/deploy.log \
-  && cd /tmp/deploy \
-  && make install \
-  && log "updated $VERSION -> `./bin/deploy --version`"
+    log "updating deploy(1)"
+    rm -fr /tmp/deploy
+    git clone git://github.com/honzahommer/deploy.git \
+        --depth 0 \
+        /tmp/deploy \
+        &> /tmp/deploy.log \
+        && cd /tmp/deploy \
+        && make install \
+        && log "updated $VERSION -> $(./bin/deploy --version)"
 }
 
 # parse argv
 
 while test $# -ne 0; do
-  arg=$1; shift
-  case $arg in
-    -h|--help) usage; exit ;;
-    -V|--version) version; exit ;;
-    -c|--config) set_config_path $1; shift ;;
-    -C|--chdir) log cd $1; cd $1; shift ;;
-    -T|--no-tests) TEST=0 ;;
-    -t|--tests) TEST=1 ;;
-    -f|--force) FORCE=1 ;;
-    run|exec) require_env; run "cd `config_get path`/current && $@"; exit ;;
-    console) require_env; console; exit ;;
-    curr|current) require_env; current_commit; exit ;;
-    prev|previous) require_env; nth_deploy_commit 2; exit ;;
-    revert) require_env; revert_to ${1-1}; exit ;;
-    setup) require_env; setup $@; exit ;;
-    list) require_env; list_deploys; exit ;;
-    update) update; exit ;;
-    config) config $@; exit ;;
-    *)
-      if test -z "$ENV"; then
-        ENV=$arg;
-      else
-        REF="$REF $arg";
-      fi
-      ;;
-  esac
+    arg=$1
+    shift
+    case $arg in
+        -h | --help)
+            usage
+            exit
+            ;;
+        -V | --version)
+            version
+            exit
+            ;;
+        -c | --config)
+            set_config_path $1
+            shift
+            ;;
+        -C | --chdir)
+            log cd $1
+            cd $1
+            shift
+            ;;
+        -T | --no-tests) TEST=0 ;;
+        -t | --tests) TEST=1 ;;
+        -f | --force) FORCE=1 ;;
+        run | exec)
+            require_env
+            run "cd $(config_get path)/current && $@"
+            exit
+            ;;
+        console)
+            require_env
+            console
+            exit
+            ;;
+        curr | current)
+            require_env
+            current_commit
+            exit
+            ;;
+        prev | previous)
+            require_env
+            nth_deploy_commit 2
+            exit
+            ;;
+        revert)
+            require_env
+            revert_to ${1-1}
+            exit
+            ;;
+        setup)
+            require_env
+            setup $@
+            exit
+            ;;
+        list)
+            require_env
+            list_deploys
+            exit
+            ;;
+        update)
+            update
+            exit
+            ;;
+        config)
+            config $@
+            exit
+            ;;
+        *)
+            if test -z "$ENV"; then
+                ENV=$arg
+            else
+                REF="$REF $arg"
+            fi
+            ;;
+    esac
 done
 
 require_env
 check_for_local_changes
 
 # deploy
-deploy "${REF:-`config_get ref`}"
+deploy "${REF:-$(config_get ref)}"
