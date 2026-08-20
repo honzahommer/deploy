@@ -9,8 +9,9 @@
 
 VERSION="0.6.0"
 CONFIG=./deploy.conf
-LOG=/tmp/deploy.log
-TEST=1
+LOG=/tmp/deploy-${USER:-default}.log
+TEST=0
+FORCE=0
 REF=
 ENV=
 
@@ -27,7 +28,8 @@ usage() {
 
     -C, --chdir <path>   change the working directory to <path>
     -c, --config <path>  set config path. defaults to ./deploy.conf
-    -T, --no-tests       ignore test hook
+    -t, --tests          run test hook
+    -f, --force          skip local change checking
     -V, --version        output program version
     -h, --help           output help information
 
@@ -183,13 +185,23 @@ hook() {
 setup() {
   local path=`config_get path`
   local repo=`config_get repo`
+  local ref=`config_get ref`
+  local fetch=`config_get fetch`
+  local branch=${ref#*/}
+
   run "mkdir -p $path/{shared/{logs,pids},source}"
   test $? -eq 0 || abort setup paths failed
   log running setup
   log cloning $repo
-  run "git clone $repo $path/source"
+  if test "$fetch" != "fast"; then
+    log "full fetch"
+    run "git clone --branch $branch $repo $path/source"
+  else
+    log "fast fetch"
+    run "git clone --depth=5 --branch $branch $repo $path/source"
+  fi
   test $? -eq 0 || abort failed to clone
-  run "ln -sfn $path/source $path/current"
+  run "cd $path && ln -sfn ./source ./current"
   test $? -eq 0 || abort symlink failed
   log setup complete
 }
@@ -201,13 +213,21 @@ setup() {
 deploy() {
   local ref=$1
   local path=`config_get path`
-  log deploying
+  local fetch=`config_get fetch`
+
+  log "deploying ${ref}"
 
   hook pre-deploy || abort pre-deploy hook failed
 
   # fetch source
   log fetching updates
-  run "cd $path/source && git fetch --all"
+  if test "$fetch" != "fast"; then
+      log "full fetch"
+      run "cd $path/source && git fetch --all --tags"
+  else
+      log "fast fetch"
+      run "cd $path/source && git fetch --depth=5 --all --tags"
+  fi
   test $? -eq 0 || abort fetch failed
 
   # latest tag
@@ -226,7 +246,7 @@ deploy() {
   test $? -eq 0 || abort git reset failed
 
   # link current
-  run "ln -sfn $path/source $path/current"
+  run "cd $path && ln -sfn ./source ./current"
   test $? -eq 0 || abort symlink failed
 
   # deploy log
@@ -277,7 +297,7 @@ nth_deploy_commit() {
 
 list_deploys() {
   local path=`config_get path`
-  run "cat $path/.deploys"
+  run "tac $path/.deploys | awk '{printf \"%d\t%s\n\", NR-1, \$0}'"
 }
 
 #
@@ -316,6 +336,10 @@ require_env() {
 #
 
 check_for_local_changes() {
+  if [ $FORCE -eq 1 ]; then
+      return
+  fi
+
   git --no-pager diff --exit-code --quiet          || abort "commit or stash your changes before deploying"
   git --no-pager diff --exit-code --quiet --cached || abort "commit your staged changes before deploying"
   [ -z "`git rev-list @{upstream}.. -n 1`" ]       || abort "push your changes before deploying"
@@ -328,7 +352,7 @@ check_for_local_changes() {
 update() {
   log "updating deploy(1)"
   rm -fr /tmp/deploy
-  git clone git://github.com/visionmedia/deploy.git \
+  git clone git://github.com/honzahommer/deploy.git \
     --depth 0 \
     /tmp/deploy \
     &> /tmp/deploy.log \
@@ -347,6 +371,8 @@ while test $# -ne 0; do
     -c|--config) set_config_path $1; shift ;;
     -C|--chdir) log cd $1; cd $1; shift ;;
     -T|--no-tests) TEST=0 ;;
+    -t|--tests) TEST=1 ;;
+    -f|--force) FORCE=1 ;;
     run|exec) require_env; run "cd `config_get path`/current && $@"; exit ;;
     console) require_env; console; exit ;;
     curr|current) require_env; current_commit; exit ;;

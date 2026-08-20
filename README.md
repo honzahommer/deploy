@@ -7,7 +7,7 @@
 
     $ make install
 
-  Visit the [wiki](https://github.com/visionmedia/deploy/wiki) for additional usage information.
+  Visit the [wiki](https://github.com/honzahommer/deploy/wiki) for additional usage information.
 
 ## Usage
 
@@ -18,14 +18,13 @@
 
         -C, --chdir <path>   change the working directory to <path>
         -c, --config <path>  set config path. defaults to ./deploy.conf
-        -T, --no-tests       ignore test hook
+        -t, --tests          run test hook
         -V, --version        output program version
         -h, --help           output help information
 
       Commands:
 
         setup                run remote setup commands
-        update               update deploy to the latest release
         revert [n]           revert to [n]th last deployment or 1
         config [key]         output config file or [key]
         curr[ent]            output current release commit
