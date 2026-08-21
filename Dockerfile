@@ -7,6 +7,3 @@ RUN apk add --no-cache \
 
 COPY bin/deploy /usr/local/bin/deploy
 RUN chmod +x /usr/local/bin/deploy
-
-ENTRYPOINT ["deploy"]
-CMD ["--help"]
