@@ -1,3 +1,10 @@
+# [0.8.0](https://github.com/honzahommer/deploy/compare/0.7.2...0.8.0) (2026-08-21)
+
+
+### Features
+
+* add setup-or-deploy command ([2057f79](https://github.com/honzahommer/deploy/commit/2057f79ee75bfc06edf0c499e9102a617b65d054))
+
 ## [0.7.2](https://github.com/honzahommer/deploy/compare/0.7.1...0.7.2) (2026-08-21)
 
 
