@@ -1,3 +1,10 @@
+## [0.7.2](https://github.com/honzahommer/deploy/compare/0.7.1...0.7.2) (2026-08-21)
+
+
+### Bug Fixes
+
+* **docker:** remove entrypoint to use as CI image ([8d57feb](https://github.com/honzahommer/deploy/commit/8d57feb314a282df114489d4033e81e1f55fcc18))
+
 ## [0.7.1](https://github.com/honzahommer/deploy/compare/0.7.0...0.7.1) (2026-08-21)
 
 
