@@ -1,3 +1,10 @@
+## [0.7.1](https://github.com/honzahommer/deploy/compare/0.7.0...0.7.1) (2026-08-21)
+
+
+### Bug Fixes
+
+* **release:** stop false CI failures and wire up ghcr image publish ([62de7c8](https://github.com/honzahommer/deploy/commit/62de7c8741f99ad91c1a6cb79aac8bd733fd5af4))
+
 # [0.7.0](https://github.com/honzahommer/deploy/compare/0.6.0...0.7.0) (2026-08-20)
 
 
