@@ -36,6 +36,7 @@ usage() {
   Commands:
 
     setup                run remote setup commands
+    setup-or-deploy      run setup only if needed, then deploy [ref]
     update               update deploy to the latest release
     revert [n]           revert to [n]th last deployment or 1
     config [key]         output config file or [key]
@@ -224,17 +225,32 @@ setup() {
     test $? -eq 0 || abort setup paths failed
     log running setup
     log cloning "$repo"
+    local branch_opt=
+    test -n "$branch" && branch_opt="--branch $branch"
     if test "$fetch" != "fast"; then
         log "full fetch"
-        run "git clone --branch $branch $repo $path/source"
+        run "git clone $branch_opt $repo $path/source"
     else
         log "fast fetch"
-        run "git clone --depth=5 --branch $branch $repo $path/source"
+        run "git clone --depth=5 $branch_opt $repo $path/source"
     fi
     test $? -eq 0 || abort failed to clone
     run "cd $path && ln -sfn source current"
     test $? -eq 0 || abort symlink failed
     log setup complete
+}
+
+#
+# Run setup only if the remote source does not exist yet, then deploy [ref].
+#
+
+setup_or_deploy() {
+    local ref=$1
+    local path
+    path=$(config_get path)
+    run "test -d $path/source/.git"
+    test $? -eq 0 || setup
+    deploy "$ref"
 }
 
 #
@@ -452,6 +468,11 @@ while test $# -ne 0; do
         setup)
             require_env
             setup "$@"
+            exit
+            ;;
+        setup-or-deploy)
+            require_env
+            setup_or_deploy "$1"
             exit
             ;;
         list)

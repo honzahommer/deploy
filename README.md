@@ -19,12 +19,14 @@
         -C, --chdir <path>   change the working directory to <path>
         -c, --config <path>  set config path. defaults to ./deploy.conf
         -t, --tests          run test hook
+        -f, --force          skip local change checking
         -V, --version        output program version
         -h, --help           output help information
 
       Commands:
 
         setup                run remote setup commands
+        setup-or-deploy      run setup only if needed, then deploy [ref]
         revert [n]           revert to [n]th last deployment or 1
         config [key]         output config file or [key]
         curr[ent]            output current release commit
