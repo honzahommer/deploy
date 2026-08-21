@@ -13,7 +13,8 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "sed -i 's/^VERSION=.*/VERSION=${nextRelease.version}/' bin/deploy"
+        "prepareCmd": "sed -i 's/^VERSION=.*/VERSION=${nextRelease.version}/' bin/deploy",
+        "publishCmd": "docker buildx build --push --tag ghcr.io/$GITHUB_REPOSITORY:${nextRelease.version} --tag ghcr.io/$GITHUB_REPOSITORY:latest ."
       }
     ],
     [
@@ -26,6 +27,7 @@
     [
       "@semantic-release/github",
       {
+        "successComment": false,
         "assets": [
           {
             "path": "bin/deploy",
