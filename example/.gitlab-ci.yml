@@ -1,0 +1,47 @@
+# Required CI/CD variables (Settings > CI/CD > Variables):
+#   DEPLOY_IDENTITY_BASE64  base64-encoded private key, protected + masked
+#   DEPLOY_USER             remote deploy user
+#   DEPLOY_HOST             remote host
+#   DEPLOY_REPO             git repository to clone on the remote host
+#   DEPLOY_PATH             remote deploy path
+#
+# deploy.conf is intentionally never committed (it's in .gitignore) -
+# it's generated below from the variables above.
+
+stages:
+  - deploy
+
+.deploy-job-base:
+  stage: deploy
+  image: ghcr.io/honzahommer/deploy:0.7.2
+  variables:
+    DEPLOY_ENV: $CI_COMMIT_BRANCH
+  before_script:
+    - eval $(ssh-agent -s)
+    - echo "$DEPLOY_IDENTITY_BASE64" | base64 -d | tr -d '\r' | ssh-add -
+    - install -m 700 -d ~/.ssh
+    - |
+      cat << 'EOF' > ~/.ssh/config
+      Host *
+          StrictHostKeyChecking no
+          UserKnownHostsFile /dev/null
+      EOF
+    - |
+      cat << EOF > deploy.conf
+      [$DEPLOY_ENV]
+      user $DEPLOY_USER
+      host $DEPLOY_HOST
+      repo $DEPLOY_REPO
+      path $DEPLOY_PATH
+      EOF
+
+deploy-to-production:
+  extends: .deploy-job-base
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  variables:
+    DEPLOY_ENV: production
+  environment:
+    name: production
+  script:
+    - deploy -c deploy.conf -f $DEPLOY_ENV setup-or-deploy
